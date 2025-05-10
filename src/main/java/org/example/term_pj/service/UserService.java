@@ -1,5 +1,6 @@
 package org.example.term_pj.service;
 
+import org.example.term_pj.exception.ResourceNotFoundException;
 import org.example.term_pj.model.User;
 import org.example.term_pj.repository.UserRepository;
 import org.springframework.stereotype.Service;
