@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>OCR 영수증 분석</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 20px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-top: 30px;
+            width: 400px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3f51b5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #303f9f;
+        }
+
+        p {
+            font-size: 15px;
+            margin: 6px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h2>📸 영수증 OCR 분석</h2>
+
+<div class="card">
+    <input type="file" id="fileInput" />
+    <br />
+    <button onclick="upload()">추론 요청</button>
+</div>
+
+<div class="card" id="result" style="display: none;">
+    <h3>🔍 분석 결과</h3>
+    <p><strong>파일명:</strong> <span id="r_filename"></span></p>
+    <p><strong>상호명:</strong> <span id="r_store"></span></p>
+    <p><strong>날짜:</strong> <span id="r_date"></span></p>
+    <p><strong>총액:</strong> <span id="r_total"></span></p>
+</div>
+
+<script>
+    async function upload() {
+        const input = document.getElementById("fileInput");
+        const resultBox = document.getElementById("result");
+
+        if (!input.files.length) {
+            alert("이미지 파일을 선택하세요!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", input.files[0]);
+
+        try {
+            const res = await fetch("/predict", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+
+            document.getElementById("r_filename").innerText = data.filename;
+            document.getElementById("r_store").innerText = data.store;
+            document.getElementById("r_date").innerText = data.date;
+            document.getElementById("r_total").innerText = data.total;
+
+            resultBox.style.display = "block";
+        } catch (err) {
+            alert("서버와 통신 중 오류 발생");
+            console.error(err);
+            resultBox.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>
