@@ -18,15 +18,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Service
 public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final PasswordEncoder encoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
@@ -34,12 +30,10 @@ public class AuthService {
             AuthenticationManager authenticationManager,
             UserRepository userRepository,
             RoleRepository roleRepository,
-            PasswordEncoder encoder,
             JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.encoder = encoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
     }
@@ -91,16 +85,16 @@ public class AuthService {
             return new MessageResponse("Error: Email is already in use!");
         }
 
-        Role.ERole roleName = Role.ERole.ROLE_USER;
-
-        // 요청에 역할이 있으면 해당 역할 확인
-        if (signUpRequest.getRole() != null && !signUpRequest.getRole().isEmpty()) {
-            String requestedRole = signUpRequest.getRole();
-
-            // ADMIN 역할 요청 처리
-            if ("admin".equalsIgnoreCase(requestedRole)) {
-                roleName = Role.ERole.ROLE_ADMIN;
-            }
+        // 역할 설정
+        Role.ERole roleName;
+        String requestedRole = signUpRequest.getRole().toLowerCase();
+        
+        if ("admin".equals(requestedRole)) {
+            roleName = Role.ERole.ROLE_ADMIN;
+        } else if ("user".equals(requestedRole)) {
+            roleName = Role.ERole.ROLE_USER;
+        } else {
+            return new MessageResponse("Error: Invalid role specified!");
         }
 
         // 역할 조회
