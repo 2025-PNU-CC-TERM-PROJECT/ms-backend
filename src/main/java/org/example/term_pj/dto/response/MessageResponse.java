@@ -1,4 +1,4 @@
-package org.example.term_pj.dto.request;
+package org.example.term_pj.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
