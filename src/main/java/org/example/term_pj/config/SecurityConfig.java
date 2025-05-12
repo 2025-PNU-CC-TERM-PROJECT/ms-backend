@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,9 +31,13 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
 
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider, JwtAuthenticationEntryPoint unauthorizedHandler) {
+    private final UserDetailsService userDetailsService; // 추가함. 나중에 뺴도 됨!!!!!
+
+    public SecurityConfig(JwtTokenProvider jwtTokenProvider, JwtAuthenticationEntryPoint unauthorizedHandler
+    , UserDetailsService userDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.unauthorizedHandler = unauthorizedHandler;
+        this.userDetailsService = userDetailsService;
     }
 
     @Bean
@@ -60,7 +65,9 @@ public class SecurityConfig {
                     auth.requestMatchers("/login", "/signup").permitAll()  // 로그인과 회원가입 엔드포인트 허용
                             .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll()
                             .requestMatchers("/predict/demo").permitAll() // 데모용 엔드포인트는 인증 불필요
+                            .requestMatchers("/user").authenticated()
                             .anyRequest().authenticated()
+
             );
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);

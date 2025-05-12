@@ -3,6 +3,7 @@ package org.example.term_pj.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @Table(name = "usage_history")
 @NoArgsConstructor
 @Getter
+@Setter
 public class UsageHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +27,7 @@ public class UsageHistory {
     @Column(nullable = false)
     private String modelType; // 확장 가능하도록 수정 필요함.
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String modelInput; // 모델 입력
 
     @Column(columnDefinition = "TEXT")
