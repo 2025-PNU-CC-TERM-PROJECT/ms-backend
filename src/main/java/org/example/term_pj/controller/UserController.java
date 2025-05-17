@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -31,7 +32,7 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getCurrentUserInfo(HttpServletRequest request) {
+    public ResponseEntity<?> getCurrentUserInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -39,19 +40,16 @@ public class UserController {
         }
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        String token = null;
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-        }
-        return ResponseEntity.ok(new JwtResponse(
-                token,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                userDetails.getRole()
+
+        return ResponseEntity.ok(Map.of(
+                "id", userDetails.getId(),
+                "username", userDetails.getUsername(),
+                "email", userDetails.getEmail(),
+                "role", userDetails.getRole()
         ));
     }
+
+
     @GetMapping("/usage-history")
     public ResponseEntity<List<UsageHistoryResponse>> getUserHistory(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
