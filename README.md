@@ -76,7 +76,7 @@ React + Next.js 프론트엔드
 
 <p align="center">
   <img src="./assets/login.png" width="300"/>  
-  <img src="./assets/sign_up.png" width="300"/>
+  <img src="./assets/sign_up" width="300"/>
 </p>
 
 ---
