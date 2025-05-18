@@ -7,6 +7,7 @@ import org.example.term_pj.dto.request.UsageHistoryRequest;
 import org.example.term_pj.security.services.UserDetailsImpl;
 import org.example.term_pj.service.UserHistoryService;
 import org.example.term_pj.service.UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
@@ -31,6 +32,13 @@ public class DashBoardController {
     private UserService userService;
     private UserHistoryService userHistoryService;
 
+    @Value("${external.img.fastapi.url}")
+    private String imgfastApiUrl;
+
+    @Value("${external.text.fastapi.url}")
+    private String textfastApiUrl;
+
+
     public DashBoardController(UserService userService, UserHistoryService userHistoryService) {
         this.userService = userService;
         this.userHistoryService = userHistoryService;
@@ -43,7 +51,6 @@ public class DashBoardController {
     @PostMapping("/image-class")
     public ResponseEntity<Map<String, Object>> predict(@RequestParam("file") MultipartFile file) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String fastApiUrl = "http://localhost:9000/img";
 
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "인증되지 않은 사용자입니다."));
@@ -77,7 +84,7 @@ public class DashBoardController {
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
         RestTemplate restTemplate = new RestTemplate();
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(fastApiUrl, requestEntity, Map.class);
+        ResponseEntity<Map> response = restTemplate.postForEntity(imgfastApiUrl, requestEntity, Map.class);
 
         Map<String, Object> responseBody = response.getBody();
 
@@ -106,7 +113,6 @@ public class DashBoardController {
             return ResponseEntity.badRequest().body(Map.of("error", "요약할 텍스트가 없습니다."));
         }
 
-        String fastApiUrl = "http://localhost:9001/summarize";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -116,7 +122,7 @@ public class DashBoardController {
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(payload, headers);
         RestTemplate restTemplate = new RestTemplate();
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(fastApiUrl, requestEntity, Map.class);
+        ResponseEntity<Map> response = restTemplate.postForEntity(textfastApiUrl, requestEntity, Map.class);
         Map<String, Object> responseBody = response.getBody();
         String summary = (String) responseBody.get("summary");
 
