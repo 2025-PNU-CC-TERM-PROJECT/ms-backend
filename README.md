@@ -61,6 +61,10 @@ FastAPI 기반 AI 모델 서빙 (이미지 분류 / 텍스트 요약)
 
 PostgreSQL DB
 
+# 전체 실행 과정 
+
+
+
 React + Next.js 프론트엔드
 
 ## 인증 구조
