@@ -61,10 +61,6 @@ FastAPI 기반 AI 모델 서빙 (이미지 분류 / 텍스트 요약)
 
 PostgreSQL DB
 
-# 전체 실행 과정 
-
-
-
 React + Next.js 프론트엔드
 
 ## 인증 구조
@@ -72,5 +68,44 @@ React + Next.js 프론트엔드
 - JWT 토큰 발급 → 모든 요청에 헤더로 Authorization: Bearer <token> 전송
 - 사용자 인증 정보는 UserDetailsImpl로 관리되며, SecurityContextHolder에서 조회
 
+# 전체 실행 과정 
 
+## 주요 화면 예시
+
+### 로그인 & 회원가입
+
+<p align="center">
+  <img src="./assets/login.png" width="300"/>  
+  <img src="./assets/sign_up.png" width="300"/>
+</p>
+
+---
+
+### 이미지 분류 요청
+
+<p align="center">
+  <img src="./assets/image_class_1.png" width="300"/>  
+  <img src="./assets/image_class_2.png" width="300"/>
+</p>
+
+---
+
+### 텍스트 요약 요청
+
+<p align="center">
+  <img src="./assets/text_summarize_1.png" width="300"/>  
+  <img src="./assets/text_summarize_2.png" width="300"/>
+</p>
+
+---
+
+### 사용자 활동 이력
+
+<p align="center">
+  <img src="./assets/user_history.png" width="300"/>
+  <img src="./assets/user_history_img.png" width="300"/>
+  <img src="./assets/user_history_text.png" width="300"/>
+</p>
+
+---
 
