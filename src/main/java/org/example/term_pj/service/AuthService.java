@@ -8,6 +8,7 @@ import org.example.term_pj.dto.response.MessageResponse;
 import org.example.term_pj.model.Role;
 import org.example.term_pj.model.User;
 import org.example.term_pj.repository.RoleRepository;
+import org.example.term_pj.repository.UsageHistoryRepository;
 import org.example.term_pj.repository.UserRepository;
 import org.example.term_pj.security.JwtTokenProvider;
 import org.example.term_pj.security.services.UserDetailsImpl;
@@ -17,6 +18,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -25,17 +29,20 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
+    private final UsageHistoryRepository usageHistoryRepository;
 
     public AuthService(
             AuthenticationManager authenticationManager,
             UserRepository userRepository,
             RoleRepository roleRepository,
-            JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder) {
+            JwtTokenProvider jwtTokenProvider, PasswordEncoder passwordEncoder,
+            UsageHistoryRepository usageHistoryRepository) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.jwtTokenProvider = jwtTokenProvider;
         this.passwordEncoder = passwordEncoder;
+        this.usageHistoryRepository = usageHistoryRepository;
     }
 
     /**
@@ -58,14 +65,17 @@ public class AuthService {
 
         // 인증된 사용자 정보 가져오기
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        int totalCount = usageHistoryRepository.countByUserId(userDetails.getId());
+        int imageCount = usageHistoryRepository.countByUserIdAndModelType(userDetails.getId(), "IMAGE");
+        int textCount = usageHistoryRepository.countByUserIdAndModelType(userDetails.getId(), "summary");
 
         // 응답 객체 생성 및 반환
-        return new JwtResponse(
-                jwt,
+        return new JwtResponse(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
-                userDetails.getRole());
+                userDetails.getRole(),
+                totalCount,imageCount,textCount);
     }
 
     /**

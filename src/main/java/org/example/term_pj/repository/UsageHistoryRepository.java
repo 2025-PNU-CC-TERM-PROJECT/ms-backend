@@ -18,4 +18,8 @@ public interface UsageHistoryRepository extends JpaRepository<UsageHistory, Long
             "WHERE h.usageTime BETWEEN ?1 AND ?2 ORDER BY h.usageTime DESC")
     Page<UsageHistory> findByUsageTimeBetweenOrderByUsageTimeDesc(
             LocalDateTime startDateTime, LocalDateTime endDateTime, Pageable pageable);
+
+    int countByUserId(Long id);
+    int countByUserIdAndModelType(Long userId, String modelType);
+
 }
