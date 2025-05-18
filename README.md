@@ -80,6 +80,10 @@ React + Next.js 프론트엔드
 </p>
 
 ---
+### 대시 보드 
+<p align="center">
+  <img src="./assets/dashboard.png" width="300"/>  
+</p>
 
 ### 이미지 분류 요청
 
