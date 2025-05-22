@@ -2,6 +2,10 @@
 FROM gradle:8.5-jdk21 AS builder
 WORKDIR /app
 COPY . /app
+
+ENV SPRING_PROFILE=prod
+ENV DATASOURCE_URL=jdbc:postgresql://database:5432/CC-TERM #로컬 환경용, 쿠버네티스 배포 시점엔 다르게 바인딩
+
 RUN gradle build -x test --no-daemon --stacktrace
 
 # 2단계: 실행
