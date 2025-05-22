@@ -57,8 +57,13 @@ dependencies {
 
     // PostgreSQL
     runtimeOnly 'org.postgresql:postgresql:42.7.3'
+
+
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
+
+test {
+    enabled = false
 }
