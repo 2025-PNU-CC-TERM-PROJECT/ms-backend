@@ -6,6 +6,7 @@ import org.example.term_pj.security.JwtAuthenticationFilter;
 import org.example.term_pj.security.JwtTokenProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -65,6 +66,7 @@ public class SecurityConfig {
                     auth.requestMatchers("/login", "/signup").permitAll()  // 로그인과 회원가입 엔드포인트 허용
                             .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll()
                             .requestMatchers("/predict/demo").permitAll() // 데모용 엔드포인트는 인증 불필요
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 //                            .requestMatchers("/user").authenticated()
                             .anyRequest().authenticated()
 
@@ -78,7 +80,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // 프론트엔드 URL
+        configuration.setAllowedOrigins(List.of("http://ms-frontend.ms-frontend.example.com","http://localhost:3000")); // 프론트엔드 URL
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

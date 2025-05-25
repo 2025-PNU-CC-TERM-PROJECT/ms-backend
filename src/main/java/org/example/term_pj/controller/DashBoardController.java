@@ -100,13 +100,13 @@ public class DashBoardController {
         // 요청 JSON 생성
         Map<String, Object> instance = Map.of("b64", cleaned);
         Map<String, Object> requestPayload = Map.of("instances", List.of(instance));
-        System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(requestPayload));
+        //System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(requestPayload));
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         headers.set("Host", imageHostHeader); // <-- Host 헤더 명시적으로 설정
-        System.out.println("요청 JSON:\n" + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(requestPayload));
-        System.out.println("헤더:\n" + headers.toString());
+        //System.out.println("요청 JSON:\n" + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(requestPayload));
+        //System.out.println("헤더:\n" + headers.toString());
         String jsonBody = new ObjectMapper().writeValueAsString(requestPayload);
 
         WebClient client = WebClient.builder()
