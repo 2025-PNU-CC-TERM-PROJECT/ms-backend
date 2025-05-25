@@ -41,6 +41,10 @@ public class DashBoardController {
     @Value("${external.ai.image.url}")
     private String imageApiUrl;
 
+    @Value("${external.ai.image.path}")
+    private String imagePath;
+
+
     @Value("${external.ai.image.host}")
     private String imageHostHeader;
 
@@ -116,10 +120,13 @@ public class DashBoardController {
                 .build();
 
         Map<String, Object> responseBody = client.post()
-                .bodyValue(jsonBody)
+                .uri(imagePath)
+                .bodyValue(requestPayload)  // 객체 그대로
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .block();
+
+
         System.out.println("모델 서버 응답:\n" + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(responseBody));
 //        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestPayload, headers);
 
