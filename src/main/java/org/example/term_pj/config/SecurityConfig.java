@@ -62,8 +62,7 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth ->
-                    auth.requestMatchers("/login", "/signup").permitAll()  // 로그인과 회원가입 엔드포인트 허용
-                            .requestMatchers("/", "/index.html", "/css/**", "/js/**").permitAll()
+                    auth.requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()  // 로그인과 회원가입 엔드포인트 허용
                             .requestMatchers("/predict/demo").permitAll() // 데모용 엔드포인트는 인증 불필요
 //                            .requestMatchers("/user").authenticated()
                             .anyRequest().authenticated()
@@ -78,11 +77,19 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // 프론트엔드 URL
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        // CORS 설정 확장 - 다양한 프론트엔드 접근 허용
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://ms-frontend.ms-frontend.*.sslip.io", 
+            "https://ms-frontend.ms-frontend.*.sslip.io",
+            "http://*.sslip.io",
+            "https://*.sslip.io"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
-        
+        configuration.setMaxAge(3600L);
+       
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
