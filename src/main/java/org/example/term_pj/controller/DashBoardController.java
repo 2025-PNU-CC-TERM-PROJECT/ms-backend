@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.term_pj.dto.request.FileSaveRequest;
 import org.example.term_pj.dto.request.UsageHistoryRequest;
 
+import org.example.term_pj.dto.response.UsageHistoryResponse;
 import org.example.term_pj.security.services.UserDetailsImpl;
 import org.example.term_pj.service.UserHistoryService;
 import org.example.term_pj.service.UserService;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -41,15 +43,15 @@ public class DashBoardController {
     @Value("${external.ai.image.url}")
     private String imageApiUrl;
 
-    @Value("${external.ai.image.path}")
-    private String imagePath;
-
-
     @Value("${external.ai.image.host}")
     private String imageHostHeader;
 
-    @Value("${external.text.fastapi.url}")
-    private String textfastApiUrl;
+    @Value("${external.ai.text.url}")
+    private String textApiUrl;
+
+    @Value("${external.ai.text.host}")
+    private String textHostHeader;
+
 
 
     public DashBoardController(UserService userService, UserHistoryService userHistoryService) {
@@ -57,6 +59,21 @@ public class DashBoardController {
         this.userHistoryService = userHistoryService;
     }
 
+    @GetMapping("/usage-stats")
+    public ResponseEntity<?> getUsageStats() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "인증되지 않은 사용자입니다."));
+        }
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        // user 테이블에서 누적 count 조회
+        Map<String, Object> usageStats = userService.getUsageStats(userDetails.getId());
+
+        return ResponseEntity.ok(usageStats);
+    }
 
 
     //**파일 저장 까지 트랜잭션으로 묶어야 되는데 굳이 그정도까지 구현해야되나 싶어서 우선 controller에서 파일 저장!
@@ -120,13 +137,10 @@ public class DashBoardController {
                 .build();
 
         Map<String, Object> responseBody = client.post()
-                .uri(imagePath)
-                .bodyValue(requestPayload)  // 객체 그대로
+                .bodyValue(jsonBody)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .block();
-
-
         System.out.println("모델 서버 응답:\n" + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(responseBody));
 //        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestPayload, headers);
 
@@ -138,43 +152,61 @@ public class DashBoardController {
 
         return ResponseEntity.ok(responseBody);
     }
-
-
     @PostMapping("/text-summary")
     public ResponseEntity<?> summarizeText(@RequestBody Map<String, String> requestBody) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
-
-        //**인증까지 다 넣어야되나 싶기는 한데 우선 구현은 해놨습니다!
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "인증되지 않은 사용자입니다."));
         }
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         String text = requestBody.get("text");
         if (text == null || text.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "요약할 텍스트가 없습니다."));
         }
 
+        // 요청 JSON 구성
+        Map<String, Object> instance = Map.of("text", text);
+        Map<String, Object> requestPayload = Map.of("instances", List.of(instance));
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        Map<String, String> payload = new HashMap<>();
-        payload.put("text", text);
+        System.out.println("요약 요청 JSON:\n" + new ObjectMapper().valueToTree(requestPayload).toPrettyString());
 
-        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(payload, headers);
-        RestTemplate restTemplate = new RestTemplate();
+        WebClient client = WebClient.builder()
+                .baseUrl(textApiUrl)
+                .defaultHeader(HttpHeaders.HOST, textHostHeader)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(textfastApiUrl, requestEntity, Map.class);
-        Map<String, Object> responseBody = response.getBody();
-        String summary = (String) responseBody.get("summary");
+        Map<String, Object> responseBody;
+        try {
+            responseBody = client.post()
+                    .bodyValue(requestPayload)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .block();
 
-        if (!response.toString().isEmpty()) {
-            UsageHistoryRequest historyRequest = new  UsageHistoryRequest(userDetails.getId(),userDetails.getUsername(),"summary",summary);
-            historyRequest.setInputFile(text);
-            userHistoryService.saveUsageatText(historyRequest);
+            System.out.println("텍스트 요약 응답:\n" + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(responseBody));
+        } catch (WebClientResponseException e) {
+            System.err.println("[텍스트 요약 서버 오류 응답]");
+            System.err.println("상태 코드: " + e.getStatusCode());
+            System.err.println("응답 바디: " + e.getResponseBodyAsString());
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("error", "텍스트 요약 모델 오류: " + e.getStatusCode()));
+        } catch (Exception e) {
+            System.err.println("텍스트 요약 모델 서버 연결 실패: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.GATEWAY_TIMEOUT).body(Map.of("error", "텍스트 요약 모델 연결 실패"));
         }
-        return ResponseEntity.ok(response.getBody());
+
+        String summary = (String) responseBody.get("summary");
+        if (summary == null) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("error", "모델 서버에서 요약 결과를 반환하지 않았습니다."));
+        }
+
+        UsageHistoryRequest historyRequest = new UsageHistoryRequest(userDetails.getId(), userDetails.getUsername(), "summary", summary);
+        historyRequest.setInputFile(text);
+        userHistoryService.saveUsageatText(historyRequest);
+
+        return ResponseEntity.ok(responseBody);
     }
 
 

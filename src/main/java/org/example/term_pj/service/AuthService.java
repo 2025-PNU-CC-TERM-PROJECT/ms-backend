@@ -97,27 +97,33 @@ public class AuthService {
 
         // 역할 설정
         Role.ERole roleName;
-        String requestedRole = signUpRequest.getRole().toLowerCase();
-        
-        if ("admin".equals(requestedRole)) {
+
+        // 이메일이 admin@pusan.ac.kr 이면 ROLE_ADMIN 강제 설정
+        if ("admin@pusan.ac.kr".equalsIgnoreCase(signUpRequest.getEmail())) {
             roleName = Role.ERole.ROLE_ADMIN;
-        } else if ("user".equals(requestedRole)) {
-            roleName = Role.ERole.ROLE_USER;
         } else {
-            return new MessageResponse("Error: Invalid role specified!");
+            String requestedRole = signUpRequest.getRole().toLowerCase();
+
+            if ("admin".equals(requestedRole)) {
+                roleName = Role.ERole.ROLE_ADMIN;
+            } else if ("user".equals(requestedRole)) {
+                roleName = Role.ERole.ROLE_USER;
+            } else {
+                return new MessageResponse("Error: Invalid role specified!");
+            }
         }
 
         // 역할 조회
         Role userRole = roleRepository.findByName(roleName)
                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 
+        // User 생성
         User user = new User(
                 signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
                 passwordEncoder.encode(signUpRequest.getPassword()),
                 userRole
         );
-
         userRepository.save(user);
 
         return new MessageResponse("User registered successfully!");
