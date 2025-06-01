@@ -39,22 +39,40 @@ public class JwtTokenProvider {
     }
 
     public String getUserNameFromJwtToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key())
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            
+            logger.info("JWT token parsed successfully. Subject: {}, Issued: {}, Expiration: {}", 
+                    claims.getSubject(), claims.getIssuedAt(), claims.getExpiration());
+            
+            return claims.getSubject();
+        } catch (Exception e) {
+            logger.error("Failed to get username from JWT token: {}", e.getMessage());
+            throw e;
+        }
     }
 
     public boolean validateJwtToken(String authToken) {
         try {
             Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(authToken);
+            logger.info("JWT token validation successful");
             return true;
+        } catch (MalformedJwtException e) {
+            logger.error("Invalid JWT token format: {}", e.getMessage());
+        } catch (ExpiredJwtException e) {
+            logger.error("JWT token is expired: {}", e.getMessage());
+        } catch (UnsupportedJwtException e) {
+            logger.error("JWT token is unsupported: {}", e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logger.error("JWT claims string is empty: {}", e.getMessage());
         } catch (Exception e) {
-            logger.error("Invalid JWT token: {}", e.getMessage());
-            return false;
+            logger.error("JWT token validation failed: {}", e.getMessage());
         }
+        return false;
     }
 
 }

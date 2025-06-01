@@ -19,12 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.FileInputStream;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -109,10 +106,6 @@ public class UserHistoryService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        // 이미지 경로 조회
-        String imagePath = filePathRepository.findByUsageHistoryId(historyId)
-                .map(FilePath::getFilepath)
-                .orElse(null); // 실제 경로는 프론트에 안 넘기게
 
         // 이미지 자체는 다른 API에서 서빙
         return new UsageHistoryResponse(

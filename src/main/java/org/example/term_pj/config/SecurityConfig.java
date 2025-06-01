@@ -1,4 +1,3 @@
-// src/main/java/org/example/term_pj/config/SecurityConfig.java
 package org.example.term_pj.config;
 
 import org.example.term_pj.security.JwtAuthenticationEntryPoint;
@@ -32,13 +31,11 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
 
-    private final UserDetailsService userDetailsService; // 추가함. 나중에 뺴도 됨!!!!!
 
     public SecurityConfig(JwtTokenProvider jwtTokenProvider, JwtAuthenticationEntryPoint unauthorizedHandler
     , UserDetailsService userDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.unauthorizedHandler = unauthorizedHandler;
-        this.userDetailsService = userDetailsService;
     }
 
     @Bean
@@ -66,7 +63,6 @@ public class SecurityConfig {
                     auth.requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()  // 로그인과 회원가입 엔드포인트 허용
                             .requestMatchers("/predict/demo").permitAll() // 데모용 엔드포인트는 인증 불필요
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-//                            .requestMatchers("/user").authenticated()
                             .anyRequest().authenticated()
 
             );
@@ -80,7 +76,6 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // CORS 설정 확장 - 다양한 프론트엔드 접근 허용
         configuration.setAllowedOriginPatterns(Arrays.asList(
             "http://ms-frontend.ms-frontend.example.com",
             "http://localhost:3000",
