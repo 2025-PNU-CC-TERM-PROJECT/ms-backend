@@ -1,7 +1,5 @@
 package org.example.term_pj.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.example.term_pj.dto.response.JwtResponse;
 import org.example.term_pj.dto.response.UsageHistoryResponse;
 import org.example.term_pj.security.services.UserDetailsImpl;
 import org.example.term_pj.service.UserHistoryService;

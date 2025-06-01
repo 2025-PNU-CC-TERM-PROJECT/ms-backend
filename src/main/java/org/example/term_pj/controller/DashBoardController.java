@@ -10,20 +10,13 @@ import org.example.term_pj.service.UserHistoryService;
 import org.example.term_pj.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.netty.http.HttpProtocol;
@@ -40,9 +33,6 @@ public class DashBoardController {
 
     private UserService userService;
     private UserHistoryService userHistoryService;
-
-//    @Value("${external.img.fastapi.url}")
-//    private String imgfastApiUrl;
 
     @Value("${external.ai.image.url}")
     private String imageApiUrl;
@@ -62,15 +52,38 @@ public class DashBoardController {
         this.userHistoryService = userHistoryService;
     }
 
+    @GetMapping("/usage-stats")
+    public ResponseEntity<?> getUsageStats() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "인증되지 않은 사용자입니다."));
+        }
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        // user 테이블에서 누적 count 조회
+        Map<String, Object> usageStats = userService.getUsageStats(userDetails.getId());
+
+        return ResponseEntity.ok(usageStats);
+    }
 
     //**파일 저장 까지 트랜잭션으로 묶어야 되는데 굳이 그정도까지 구현해야되나 싶어서 우선 controller에서 파일 저장!
     // 뒤에 있는 history DB , FILE DB 는 묶어두었습니다.
     @PostMapping("/image-class")
     public ResponseEntity<Map<String, Object>> predict(@RequestParam("file") MultipartFile file) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        
+        System.out.println("=== Image Classification Request ===");
+        System.out.println("Authentication object: " + authentication);
+        System.out.println("Is authenticated: " + (authentication != null && authentication.isAuthenticated()));
+        if (authentication != null) {
+            System.out.println("Principal: " + authentication.getPrincipal());
+            System.out.println("Authorities: " + authentication.getAuthorities());
+        }
 
         if (authentication == null || !authentication.isAuthenticated()) {
+            System.out.println("Authentication failed - returning 401");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "인증되지 않은 사용자입니다."));
         }
         System.out.println("Content-Type: " + file.getContentType());
@@ -104,18 +117,13 @@ public class DashBoardController {
         String cleaned = base64Encoded.replaceAll("\\r|\\n", "");
         file.transferTo(destFile);
 
-
-
         // 요청 JSON 생성
         Map<String, Object> instance = Map.of("b64", cleaned);
         Map<String, Object> requestPayload = Map.of("instances", List.of(instance));
-        //System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(requestPayload));
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-        headers.set("Host", imageHostHeader); // <-- Host 헤더 명시적으로 설정
-        //System.out.println("요청 JSON:\n" + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(requestPayload));
-        //System.out.println("헤더:\n" + headers.toString());
+        headers.set("Host", imageHostHeader);
         String jsonBody = new ObjectMapper().writeValueAsString(requestPayload);
 
         HttpClient httpClient = HttpClient.create()
@@ -147,7 +155,6 @@ public class DashBoardController {
                     .block();
 
             System.out.println("모델 서버 응답:\n" + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(responseBody));
-//        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestPayload, headers);
         } catch(WebClientResponseException e){
             System.err.println("[모델 서버 오류 응답]");
             System.err.println("▶ 상태 코드: " + e.getStatusCode());
