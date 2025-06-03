@@ -14,15 +14,15 @@ FastAPI 기반의 AI 서비스들과 연동되며, 사용자 인증, 활동 이�
 
 | 기능            | 설명                                      |
 | ------------- | --------------------------------------- |
-| 회원가입 / 로그인 | JWT 기반 사용자 인증 및 토큰 발급                   |
+| 회원가입 / 로그인 | JWT 기반 사용자 인증 및 토큰 발급                  |
 | 마이페이지 조회   | 로그인한 사용자 정보 반환 (`/user`)                |
 | 활동 이력 조회   | 사용자별 모델 사용 이력 반환 (`/dashboard/history`) |
-| AI 모델 연동   | FastAPI 기반 모델 서버와 연동하여 예측 결과 수신         |
+| AI 모델 서빙   | KServe 기반 InferenceServer와 연동하여 예측 결과 수신 |
 
 ###  사용자 인증
 
 - `POST /api/auth/login`: 이메일+비밀번호 로그인 → JWT 토큰 발급
-- `POST /api/auth/register/student`: 학생 회원가입
+- `POST /api/auth/register`: 회원가입
 
 ###  마이페이지
 
@@ -34,10 +34,10 @@ FastAPI 기반의 AI 서비스들과 연동되며, 사용자 인증, 활동 이�
 - `GET /dashboard/history`: 사용자가 요청한 AI 모델 이력 반환  
   → AI 예측 결과(JSON 포함) 및 입력 파일명, 예측 시간 정보 포함
 
-###  AI 예측 연동
+###  AI 서비스 연동
 
-- `POST /api/image-class`: 이미지 분류 요청 (Kubernetes InferenceServer에 `POST`)
-- `POST /api/text-summary`: 텍스트 요약 요청 (Kubernetes InferenceServer에 `POST`)
+- `POST /api/image-class`: 이미지 분류 요청 (KServe InferenceServer에 `POST`)
+- `POST /api/text-summary`: 텍스트 요약 요청 (KServe InferenceServer에 `POST`)
 - 결과를 받아 JSON 응답으로 가공 후 프론트로 반환
 - 결과는 DB에 사용 이력으로 저장됨
 
@@ -46,13 +46,21 @@ FastAPI 기반의 AI 서비스들과 연동되며, 사용자 인증, 활동 이�
 /api/auth
 POST /login: 이메일, 비밀번호로 로그인
 
-POST /register/student: 일반 학생 회원가입
+POST /signup: 회원가입
 
 /user
 GET /user: 로그인한 사용자 정보 조회
+GET /usage-history: 활동 이력 리스트 반환
+GET /usage-history/iamge-meta/{id}: 이미지의 활동 이력 상세 내역 반환
+GET /usage-history/iamge/{id}: 이미지 사진 반환
 
- /dashboard
-GET /dashboard/history: 활동 이력 리스트 반환
+
+/dashboard
+GET /usage-stats: 활동 횟수 반환 
+
+POST /iamge-class: KServe Inference - Image 추론 결과값 반환
+POST /text-summary: KServe Inference - Text Summary 추론 결과값 반환
+
 
 ## 연동되는 서비스
 
