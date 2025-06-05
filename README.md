@@ -43,23 +43,22 @@ FastAPI 기반의 AI 서비스들과 연동되며, 사용자 인증, 활동 이�
 
 ## API 명세
 
-/api/auth
-POST /login: 이메일, 비밀번호로 로그인
+### /api/auth
+- `POST /login`: 이메일, 비밀번호로 로그인
+- `POST /signup`: 회원가입
 
-POST /signup: 회원가입
-
-/user
-GET /user: 로그인한 사용자 정보 조회
-GET /usage-history: 활동 이력 리스트 반환
-GET /usage-history/iamge-meta/{id}: 이미지의 활동 이력 상세 내역 반환
-GET /usage-history/iamge/{id}: 이미지 사진 반환
+### /user
+- `GET /user`: 로그인한 사용자 정보 조회
+- `GET /usage-history`: 활동 이력 리스트 반환
+- `GET /usage-history/iamge-meta/{id}`: 이미지의 활동 이력 상세 내역 반환
+- `GET /usage-history/iamge/{id}`: 이미지 사진 반환
 
 
-/dashboard
-GET /usage-stats: 활동 횟수 반환 
+### /dashboard
+- `GET /usage-stats`: 활동 횟수 반환 
 
-POST /iamge-class: KServe Inference - Image 추론 결과값 반환
-POST /text-summary: KServe Inference - Text Summary 추론 결과값 반환
+- `POST /iamge-class`: KServe Inference - Image 추론 결과값 반환
+- `POST /text-summary`: KServe Inference - Text Summary 추론 결과값 반환
 
 
 ## 연동되는 서비스
