@@ -2,7 +2,7 @@
 FROM gradle:8.5-jdk17 AS builder
 WORKDIR /app
 COPY . /app
-RUN gradle build -x test --no-daemon --stacktrace
+RUN gradle build --no-daemon --stacktrace
 
 # 2단계: 실행
 FROM eclipse-temurin:17-jdk

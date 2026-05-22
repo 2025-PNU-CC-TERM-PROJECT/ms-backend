@@ -39,7 +39,6 @@ public class UserHistoryService {
     }
 
     public void saveUsageatText(UsageHistoryRequest usageHistoryRequest) {
-        System.out.println(".getId(): " + usageHistoryRequest.getUserId());
         User user = userService.getUserById(usageHistoryRequest.getUserId());
         UsageHistory history = new UsageHistory();
         history.setUser(user);

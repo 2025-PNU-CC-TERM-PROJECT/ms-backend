@@ -92,23 +92,7 @@ public class AuthService {
             return new MessageResponse("Error: Email is already in use!");
         }
 
-        // 역할 설정
-        Role.ERole roleName;
-
-        // 이메일이 admin@pusan.ac.kr 이면 ROLE_ADMIN 강제 설정
-        if ("admin@pusan.ac.kr".equalsIgnoreCase(signUpRequest.getEmail())) {
-            roleName = Role.ERole.ROLE_ADMIN;
-        } else {
-            String requestedRole = signUpRequest.getRole().toLowerCase();
-
-            if ("admin".equals(requestedRole)) {
-                roleName = Role.ERole.ROLE_ADMIN;
-            } else if ("user".equals(requestedRole)) {
-                roleName = Role.ERole.ROLE_USER;
-            } else {
-                return new MessageResponse("Error: Invalid role specified!");
-            }
-        }
+        Role.ERole roleName = Role.ERole.ROLE_USER;
 
         // 역할 조회
         Role userRole = roleRepository.findByName(roleName)

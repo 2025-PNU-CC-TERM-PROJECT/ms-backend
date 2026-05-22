@@ -2,6 +2,7 @@ package org.example.term_pj.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.example.term_pj.security.services.UserDetailsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,16 @@ public class JwtTokenProvider {
 
     @Value("${app.jwtExpirationMs}")
     private int jwtExpirationMs;
+
+    @PostConstruct
+    void validateSecret() {
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("APP_JWT_SECRET must be configured.");
+        }
+        if (jwtSecret.getBytes().length < 32) {
+            throw new IllegalStateException("APP_JWT_SECRET must be at least 32 bytes for HS256.");
+        }
+    }
 
     // JWT 토큰 생성
     public String generateJwtToken(Authentication authentication) {
