@@ -46,6 +46,9 @@ public class DashBoardController {
     @Value("${external.ai.text.host}")
     private String textHostHeader;
 
+    @Value("${app.upload.dir:/app/uploads}")
+    private String uploadDirPath;
+
 
     public DashBoardController(UserService userService, UserHistoryService userHistoryService) {
         this.userService = userService;
@@ -106,8 +109,7 @@ public class DashBoardController {
         String savedFilename = uuid + "_" + originalFilename;
 
         // 파일 저장 (선택사항: 기록용)
-        String rootPath = new File("").getAbsolutePath();
-        File uploadDir = new File(rootPath + "/uploads");
+        File uploadDir = new File(uploadDirPath);
         if (!uploadDir.exists()) uploadDir.mkdirs();
 
         File destFile = new File(uploadDir, savedFilename);
